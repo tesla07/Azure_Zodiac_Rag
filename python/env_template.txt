@@ -1,0 +1,10 @@
+# Azure OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+CHAT_MODEL=gpt-4o
+EMBEDDING_MODEL=text-embedding-ada-002
+
+# Azure AI Search Configuration
+SEARCH_API_KEY=your_search_api_key_here
+SEARCH_ENDPOINT=https://your-search-service.search.windows.net
+INDEX_NAME=zodiac-index 
