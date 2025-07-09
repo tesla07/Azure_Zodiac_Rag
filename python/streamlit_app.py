@@ -80,8 +80,10 @@ def create_openai_client(config):
             st.error("Missing OpenAI endpoint or API key")
             return None
             
-        # Create client with minimal parameters only
+        # Create client using the openai module directly to avoid proxies issue
         st.sidebar.write("  - Creating AzureOpenAI client...")
+        
+        # Create client with minimal parameters to avoid proxies issue
         client = AzureOpenAI(
             api_version="2023-12-01-preview",
             azure_endpoint=str(config["openai_endpoint"]),
