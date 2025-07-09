@@ -39,7 +39,7 @@ def load_environment():
         st.info("Please copy env_template.txt to .env and fill in your Azure service details.")
         return None
     
-    return {
+    config = {
         "openai_api_key": os.getenv("OPENAI_API_KEY"),
         "openai_endpoint": os.getenv("OPENAI_ENDPOINT"),
         "chat_model": os.getenv("CHAT_MODEL"),
@@ -48,18 +48,65 @@ def load_environment():
         "search_endpoint": os.getenv("SEARCH_ENDPOINT"),
         "index_name": os.getenv("INDEX_NAME")
     }
+    
+    # Debug: Show loaded config (without sensitive data)
+    st.sidebar.write("🔧 Config loaded:")
+    if config['openai_endpoint']:
+        st.sidebar.write(f"  - OpenAI Endpoint: {config['openai_endpoint'][:30]}...")
+    if config['chat_model']:
+        st.sidebar.write(f"  - Chat Model: {config['chat_model']}")
+    if config['search_endpoint']:
+        st.sidebar.write(f"  - Search Endpoint: {config['search_endpoint'][:30]}...")
+    
+    return config
 
 def create_openai_client(config):
     """Create and return Azure OpenAI client"""
     try:
+        # Debug: Show what we're about to do
+        st.sidebar.write("🔧 Creating OpenAI client...")
+        st.sidebar.write(f"  - Endpoint: {config['openai_endpoint'][:30]}...")
+        st.sidebar.write(f"  - Model: {config['chat_model']}")
+        
+        # Clear any proxy-related environment variables that might interfere
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'NO_PROXY', 'no_proxy']
+        for var in proxy_vars:
+            if var in os.environ:
+                st.sidebar.write(f"  - Clearing {var}")
+                del os.environ[var]
+        
+        # Ensure we have the required config values
+        if not config.get("openai_endpoint") or not config.get("openai_api_key"):
+            st.error("Missing OpenAI endpoint or API key")
+            return None
+            
+        # Create client with minimal parameters only
+        st.sidebar.write("  - Creating AzureOpenAI client...")
         client = AzureOpenAI(
             api_version="2023-12-01-preview",
-            azure_endpoint=config["openai_endpoint"],
-            api_key=config["openai_api_key"]
+            azure_endpoint=str(config["openai_endpoint"]),
+            api_key=str(config["openai_api_key"])
         )
+        
+        # Test the client with a simple call
+        try:
+            st.sidebar.write("  - Testing client...")
+            # This will help us identify if the issue is with the client creation or the RAG call
+            test_response = client.chat.completions.create(
+                model=config["chat_model"] or "gpt-4o",
+                messages=[{"role": "user", "content": "Hello"}],
+                max_tokens=10
+            )
+            st.sidebar.success("✅ OpenAI client test successful")
+        except Exception as test_error:
+            st.sidebar.error(f"❌ OpenAI client test failed: {test_error}")
+            return None
+            
         return client
     except Exception as e:
         st.error(f"Error creating OpenAI client: {e}")
+        st.error(f"Error type: {type(e).__name__}")
+        st.error(f"Error details: {str(e)}")
         return None
 
 def get_zodiac_response(client, config, user_message, conversation_history):
@@ -105,13 +152,20 @@ def get_zodiac_response(client, config, user_message, conversation_history):
 def main():
     """Main Streamlit application"""
     
-    # Page configuration
+    # Page configuration - MUST BE FIRST!
     st.set_page_config(
         page_title="♈ Linda Goodman's Zodiac Guide",
         page_icon="♈",
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    
+    # Debug: Check OpenAI version (AFTER page config)
+    try:
+        import openai
+        st.sidebar.write(f"🔍 OpenAI Version: {openai.__version__}")
+    except Exception as e:
+        st.sidebar.write(f"🔍 OpenAI Import Error: {e}")
     
     # Custom CSS for beautiful styling
     st.markdown("""
