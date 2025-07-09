@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ♈ Linda Goodman's Zodiac Guide
 
 A powerful Retrieval Augmented Generation (RAG) application that provides detailed zodiac insights based on Linda Goodman's astrological work. Built with Azure AI services and available as both a command-line tool and a beautiful web interface.
@@ -224,3 +225,6 @@ If you encounter any issues or have questions:
 ---
 
 **🌟 Ready to explore the fascinating world of zodiac signs? Start your journey with Linda Goodman's wisdom!** 
+=======
+# Azure_Zodiac_Rag
+>>>>>>> 095754c48b916a5e1a05f88dfcf6ddf6d69f7308
